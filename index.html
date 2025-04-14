@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>猜单词游戏</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+        
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+            background-size: cover;
+            background-position: center;
+            margin: 0;
+            padding: 20px;
+            transition: background 0.5s;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.92);
+            padding: 36px 28px 32px 28px;
+            border-radius: 20px;
+            box-shadow: 0 10px 36px rgba(80, 80, 160, 0.13);
+            backdrop-filter: blur(12px);
+            max-width: 500px;
+            width: 100%;
+            transform: translateY(0);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .container:hover {
+            transform: translateY(-6px) scale(1.01);
+            box-shadow: 0 16px 48px rgba(80, 80, 160, 0.18);
+        }
+
+        h1 {
+            color: #5f2c82;
+            text-align: center;
+            margin-bottom: 28px;
+            font-size: 2.7em;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 8px rgba(161, 140, 209, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        h1 .icon {
+            font-size: 1.2em;
+        }
+
+        .game-area {
+            margin-bottom: 28px;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 22px;
+            align-items: center;
+        }
+
+        .input-icon {
+            font-size: 1.3em;
+            color: #764ba2;
+            margin-right: 4px;
+        }
+
+        input {
+            padding: 12px 16px 12px 36px;
+            font-size: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            flex-grow: 1;
+            transition: all 0.3s;
+            box-shadow: 0 2px 6px rgba(161, 140, 209, 0.07);
+            background: #f7f7fa url('data:image/svg+xml;utf8,<svg fill="gray" height="18" viewBox="0 0 24 24" width="18" xmlns="http://www.w3.org/2000/svg"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99c.41.41 1.09.41 1.5 0s.41-1.09 0-1.5l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>') no-repeat 10px center;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #764ba2;
+            box-shadow: 0 0 0 3px rgba(161, 140, 209, 0.18);
+            background-color: #fff;
+        }
+
+        button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.25s;
+            box-shadow: 0 4px 12px rgba(118, 75, 162, 0.13);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button .icon {
+            font-size: 1.2em;
+        }
+
+        button:hover {
+            transform: translateY(-2px) scale(1.04);
+            box-shadow: 0 8px 18px rgba(118, 75, 162, 0.18);
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+
+        button:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .guesses {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .guess-row {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            perspective: 1000px;
+        }
+
+        .letter {
+            width: 45px;
+            height: 45px;
+            border: 2px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-radius: 10px;
+            transition: all 0.4s;
+            transform-style: preserve-3d;
+            animation: flipIn 0.6s ease forwards;
+            background: #f7f7fa;
+            color: #5f2c82;
+        }
+
+        @keyframes flipIn {
+            0% {
+                transform: rotateX(-90deg);
+                opacity: 0;
+            }
+            100% {
+                transform: rotateX(0);
+                opacity: 1;
+            }
+        }
+
+        .letter.correct {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            border: none;
+        }
+
+        .letter.wrong-position {
+            background: linear-gradient(135deg, #ecc94b 0%, #d69e2e 100%);
+            color: white;
+            border: none;
+        }
+
+        .letter.incorrect {
+            background: linear-gradient(135deg, #a0aec0 0%, #718096 100%);
+            color: white;
+            border: none;
+        }
+
+        .message {
+            text-align: center;
+            margin: 15px 0;
+            font-weight: 600;
+            color: #5f2c82;
+            padding: 10px;
+            border-radius: 10px;
+            background: rgba(161, 140, 209, 0.08);
+            animation: fadeIn 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .message .icon {
+            font-size: 1.2em;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .remaining {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #764ba2;
+            font-size: 1.1em;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .remaining .icon {
+            font-size: 1.1em;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 16px;
+            }
+            
+            .letter {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            input, button {
+                padding: 8px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><span class="icon">🎯</span>猜单词游戏</h1>
+        <div class="game-area">
+            <div class="remaining"><span class="icon">🕑</span>剩余猜测次数：<span id="attempts">6</span></div>
+            <div class="input-area">
+                <input type="text" id="guessInput" placeholder="输入5个字母的单词" maxlength="5" autocomplete="off">
+                <button onclick="makeGuess()"><span class="icon">🔍</span>猜！</button>
+            </div>
+            <div id="message" class="message" style="display: none;"><span class="icon">💡</span><span id="messageText"></span></div>
+            <div id="guesses" class="guesses"></div>
+        </div>
+        <button onclick="newGame()" style="width: 100%; margin-top: 8px;"><span class="icon">🔄</span>重新开始</button>
+    </div>
+    <script>
+        // 消息区兼容旧代码
+        function showMessage(text, icon = "💡") {
+            const msgDiv = document.getElementById('message');
+            const msgText = document.getElementById('messageText');
+            if (msgDiv && msgText) {
+                msgText.textContent = text;
+                msgDiv.querySelector('.icon').textContent = icon;
+                msgDiv.style.display = '';
+            }
+        }
+        function hideMessage() {
+            const msgDiv = document.getElementById('message');
+            if (msgDiv) msgDiv.style.display = 'none';
+        }
+    </script>
+    <script src="game.js"></script>
+</body>
+</html>
