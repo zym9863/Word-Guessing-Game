@@ -241,6 +241,100 @@
                 font-size: 14px;
             }
         }
+
+        /* 虚拟键盘样式 */
+        .virtual-keyboard {
+            margin-top: 28px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 16px;
+            backdrop-filter: blur(8px);
+        }
+
+        .keyboard-row {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .key {
+            min-width: 36px;
+            height: 48px;
+            padding: 0 8px;
+            background: linear-gradient(135deg, #f7f7fa 0%, #e2e8f0 100%);
+            color: #5f2c82;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            transition: all 0.25s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(161, 140, 209, 0.08);
+        }
+
+        .key:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 4px 10px rgba(118, 75, 162, 0.15);
+            background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e0 100%);
+        }
+
+        .key:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .key-large {
+            min-width: 60px;
+            font-size: 12px;
+        }
+
+        /* 键盘按键状态样式 */
+        .key.correct {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            border: none;
+        }
+
+        .key.wrong-position {
+            background: linear-gradient(135deg, #ecc94b 0%, #d69e2e 100%);
+            color: white;
+            border: none;
+        }
+
+        .key.incorrect {
+            background: linear-gradient(135deg, #a0aec0 0%, #718096 100%);
+            color: white;
+            border: none;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 480px) {
+            .virtual-keyboard {
+                padding: 12px;
+                margin-top: 20px;
+            }
+
+            .keyboard-row {
+                gap: 4px;
+                margin-bottom: 4px;
+            }
+
+            .key {
+                min-width: 28px;
+                height: 40px;
+                padding: 0 6px;
+                font-size: 12px;
+            }
+
+            .key-large {
+                min-width: 48px;
+                font-size: 10px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -254,6 +348,44 @@
             </div>
             <div id="message" class="message" style="display: none;"><span class="icon">💡</span><span id="messageText"></span></div>
             <div id="guesses" class="guesses"></div>
+
+            <!-- 虚拟键盘 -->
+            <div id="virtualKeyboard" class="virtual-keyboard">
+                <div class="keyboard-row">
+                    <button class="key" data-key="q">Q</button>
+                    <button class="key" data-key="w">W</button>
+                    <button class="key" data-key="e">E</button>
+                    <button class="key" data-key="r">R</button>
+                    <button class="key" data-key="t">T</button>
+                    <button class="key" data-key="y">Y</button>
+                    <button class="key" data-key="u">U</button>
+                    <button class="key" data-key="i">I</button>
+                    <button class="key" data-key="o">O</button>
+                    <button class="key" data-key="p">P</button>
+                </div>
+                <div class="keyboard-row">
+                    <button class="key" data-key="a">A</button>
+                    <button class="key" data-key="s">S</button>
+                    <button class="key" data-key="d">D</button>
+                    <button class="key" data-key="f">F</button>
+                    <button class="key" data-key="g">G</button>
+                    <button class="key" data-key="h">H</button>
+                    <button class="key" data-key="j">J</button>
+                    <button class="key" data-key="k">K</button>
+                    <button class="key" data-key="l">L</button>
+                </div>
+                <div class="keyboard-row">
+                    <button class="key key-large" data-key="Enter">Enter</button>
+                    <button class="key" data-key="z">Z</button>
+                    <button class="key" data-key="x">X</button>
+                    <button class="key" data-key="c">C</button>
+                    <button class="key" data-key="v">V</button>
+                    <button class="key" data-key="b">B</button>
+                    <button class="key" data-key="n">N</button>
+                    <button class="key" data-key="m">M</button>
+                    <button class="key key-large" data-key="Backspace">⌫</button>
+                </div>
+            </div>
         </div>
         <button onclick="newGame()" style="width: 100%; margin-top: 8px;"><span class="icon">🔄</span>重新开始</button>
     </div>
@@ -272,6 +404,38 @@
             const msgDiv = document.getElementById('message');
             if (msgDiv) msgDiv.style.display = 'none';
         }
+
+        // 虚拟键盘交互功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const virtualKeyboard = document.getElementById('virtualKeyboard');
+            const guessInput = document.getElementById('guessInput');
+
+            // 为每个按键添加点击事件
+            virtualKeyboard.addEventListener('click', function(e) {
+                if (e.target.classList.contains('key')) {
+                    const key = e.target.dataset.key;
+                    handleKeyPress(key);
+                }
+            });
+
+            // 处理按键输入
+            function handleKeyPress(key) {
+                if (key === 'Enter') {
+                    // 提交猜测
+                    makeGuess();
+                } else if (key === 'Backspace') {
+                    // 删除最后一个字符
+                    guessInput.value = guessInput.value.slice(0, -1);
+                } else {
+                    // 添加字母到输入框（最多5个字符）
+                    if (guessInput.value.length < 5) {
+                        guessInput.value += key.toLowerCase();
+                    }
+                }
+                // 确保输入框获得焦点，方便用户使用物理键盘
+                guessInput.focus();
+            }
+        });
     </script>
     <script src="game.js"></script>
 </body>

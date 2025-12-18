@@ -20,6 +20,16 @@ function initGame() {
     document.getElementById('message').textContent = '';
     document.getElementById('guesses').innerHTML = '';
     document.getElementById('guessInput').value = '';
+    // 重置虚拟键盘状态
+    resetVirtualKeyboard();
+}
+
+// 重置虚拟键盘
+function resetVirtualKeyboard() {
+    const keys = document.querySelectorAll('.key');
+    keys.forEach(key => {
+        key.classList.remove('correct', 'wrong-position', 'incorrect');
+    });
 }
 
 // 检查猜测
@@ -41,18 +51,48 @@ function makeGuess() {
     const guessRow = document.createElement('div');
     guessRow.className = 'guess-row';
 
-    // 检查每个字母
+    // 用于跟踪每个字母的状态，以便更新虚拟键盘
+    const letterStatus = {};
+
+    // 首先检查所有正确位置的字母
+    for (let i = 0; i < guess.length; i++) {
+        const letter = guess[i];
+        if (guess[i] === targetWord[i]) {
+            letterStatus[letter] = 'correct';
+        }
+    }
+
+    // 然后检查所有不正确位置但存在于目标单词中的字母
+    // 需要注意避免重复计算
+    const targetWordRemaining = targetWord.split('').filter((char, index) => {
+        return guess[index] !== char;
+    });
+
+    const guessRemaining = guess.split('').filter((char, index) => {
+        return guess[index] !== targetWord[index];
+    });
+
+    for (let letter of guessRemaining) {
+        if (!letterStatus[letter]) { // 只处理尚未标记为correct的字母
+            const index = targetWordRemaining.indexOf(letter);
+            if (index > -1) {
+                letterStatus[letter] = 'wrong-position';
+                targetWordRemaining.splice(index, 1); // 避免重复计算
+            } else {
+                letterStatus[letter] = 'incorrect';
+            }
+        }
+    }
+
+    // 更新猜测行显示
     for (let i = 0; i < guess.length; i++) {
         const letter = document.createElement('div');
         letter.className = 'letter';
         letter.textContent = guess[i];
 
-        if (guess[i] === targetWord[i]) {
-            letter.classList.add('correct');
-        } else if (targetWord.includes(guess[i])) {
-            letter.classList.add('wrong-position');
-        } else {
-            letter.classList.add('incorrect');
+        const status = letterStatus[guess[i]];
+        if (status) {
+            letter.classList.add(status);
         }
 
         guessRow.appendChild(letter);
@@ -60,6 +100,9 @@ function makeGuess() {
 
     document.getElementById('guesses').appendChild(guessRow);
     input.value = '';
+
+    // 更新虚拟键盘
+    updateVirtualKeyboard(letterStatus);
 
     // 检查是否胜利
     if (guess === targetWord) {
@@ -76,6 +119,23 @@ function makeGuess() {
     if (remainingAttempts === 0) {
         document.getElementById('message').textContent = `游戏结束！正确单词是 ${targetWord}`;
         gameOver = true;
+    }
+}
+
+// 更新虚拟键盘上字母的颜色
+function updateVirtualKeyboard(letterStatus) {
+    for (let [letter, status] of Object.entries(letterStatus)) {
+        const keyElement = document.querySelector(`.key[data-key="${letter}"]`);
+        if (keyElement) {
+            // 只有当当前状态不是correct时，才允许更新（防止绿色被降级）
+            const currentStatus = keyElement.classList.contains('correct') ? 'correct' : null;
+            if (!currentStatus || currentStatus === 'correct') {
+                // 移除所有状态类
+                keyElement.classList.remove('correct', 'wrong-position', 'incorrect');
+                // 添加新状态类
+                keyElement.classList.add(status);
+            }
+        }
     }
 }
 
